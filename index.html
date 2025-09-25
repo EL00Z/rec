@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Screen Recorder - Record Any Tab or Screen</title>
+    <title>Screen & Audio Recorder - Free Online Recording Tool</title>
     <style>
         * {
             margin: 0;
@@ -28,7 +28,7 @@
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 40px;
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
@@ -93,6 +93,53 @@
             50% { opacity: 0.3; }
         }
 
+        .recording-mode {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .mode-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .mode-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .mode-option {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .mode-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mode-option.selected {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #43e97b;
+        }
+
+        .mode-option input {
+            display: none;
+        }
+
+        .mode-icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
         .buttons {
             display: flex;
             gap: 15px;
@@ -149,26 +196,12 @@
         }
 
         .option-group label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 5px;
-            transition: background 0.3s;
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
         }
 
-        .option-group label:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .format-select {
+        select {
             width: 100%;
             padding: 10px;
             border-radius: 5px;
@@ -177,7 +210,19 @@
             color: #1a1a2e;
             font-size: 1em;
             cursor: pointer;
-            margin-top: 10px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
         }
 
         .info {
@@ -211,16 +256,24 @@
             font-size: 1.2em;
         }
 
-        .error {
-            background: rgba(255, 67, 54, 0.2);
-            border: 2px solid rgba(255, 67, 54, 0.5);
+        .error, .warning {
             border-radius: 10px;
             padding: 15px;
             margin-top: 20px;
             display: none;
         }
 
-        .error.active {
+        .error {
+            background: rgba(255, 67, 54, 0.2);
+            border: 2px solid rgba(255, 67, 54, 0.5);
+        }
+
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.5);
+        }
+
+        .error.active, .warning.active {
             display: block;
         }
 
@@ -231,45 +284,81 @@
             font-size: 0.9em;
         }
 
-        .footer a {
-            color: white;
-            text-decoration: none;
-            border-bottom: 1px dotted white;
+        .hidden {
+            display: none !important;
         }
 
-        .footer a:hover {
-            border-bottom-style: solid;
+        @media (max-width: 480px) {
+            .mode-options {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎬 Screen Recorder</h1>
-        <p class="subtitle">Record any tab, window, or your entire screen</p>
+        <h1>🎬 Screen & Audio Recorder</h1>
+        <p class="subtitle">Record screen, audio, or both - all in your browser</p>
 
         <div class="recording-info" id="recordingInfo">
             <div class="timer" id="timer">00:00:00</div>
             <div class="status">
                 <div class="recording-dot"></div>
-                <span>Recording in progress...</span>
+                <span id="recordingStatus">Recording in progress...</span>
+            </div>
+        </div>
+
+        <div class="recording-mode">
+            <span class="mode-label">Recording Mode:</span>
+            <div class="mode-options">
+                <label class="mode-option selected">
+                    <input type="radio" name="mode" value="screen-audio" checked>
+                    <div class="mode-icon">🖥️🎵</div>
+                    <div>Screen + Audio</div>
+                </label>
+                <label class="mode-option">
+                    <input type="radio" name="mode" value="screen-only">
+                    <div class="mode-icon">🖥️</div>
+                    <div>Screen Only</div>
+                </label>
+                <label class="mode-option">
+                    <input type="radio" name="mode" value="audio-only">
+                    <div class="mode-icon">🎵</div>
+                    <div>Audio Only</div>
+                </label>
+                <label class="mode-option">
+                    <input type="radio" name="mode" value="camera">
+                    <div class="mode-icon">📷</div>
+                    <div>Camera</div>
+                </label>
             </div>
         </div>
 
         <div class="options">
-            <div class="option-group">
-                <label>
-                    <input type="checkbox" id="recordAudio" checked>
-                    <span>Record Audio (if available)</span>
-                </label>
+            <div class="option-group" id="qualityGroup">
+                <label for="quality">Video Quality:</label>
+                <select id="quality">
+                    <option value="1080">1080p (Full HD)</option>
+                    <option value="720" selected>720p (HD)</option>
+                    <option value="480">480p (SD)</option>
+                    <option value="360">360p (Low)</option>
+                </select>
             </div>
-            
+
+            <div class="option-group" id="audioSourceGroup">
+                <label for="audioSource">Audio Source:</label>
+                <select id="audioSource">
+                    <option value="system">System/Tab Audio</option>
+                    <option value="microphone">Microphone</option>
+                    <option value="both">Both (System + Mic)</option>
+                </select>
+            </div>
+
             <div class="option-group">
-                <label for="videoFormat">
-                    <span>Video Format:</span>
-                </label>
-                <select id="videoFormat" class="format-select">
+                <label for="format">Output Format:</label>
+                <select id="format">
                     <option value="webm">WebM (Recommended)</option>
-                    <option value="mp4">MP4 (Experimental)</option>
+                    <option value="mp4">MP4 (if supported)</option>
                 </select>
             </div>
         </div>
@@ -280,22 +369,16 @@
         </div>
 
         <div class="error" id="errorMsg"></div>
+        <div class="warning" id="warningMsg"></div>
 
         <div class="info">
-            <h3>How it works:</h3>
+            <h3>Tips:</h3>
             <ul>
-                <li>Click "Start Recording"</li>
-                <li>Choose what to record (tab, window, or screen)</li>
-                <li>Click "Stop Recording" when done</li>
-                <li>Video saves automatically to Downloads</li>
+                <li>For best quality, use Chrome or Edge browser</li>
+                <li>System audio recording works best when recording a tab</li>
+                <li>Microphone requires separate permission</li>
+                <li>Files save automatically to Downloads folder</li>
             </ul>
-        </div>
-
-        <div class="footer">
-            <p>Free & Open Source • No data collected • All processing happens locally</p>
-            <p style="margin-top: 10px">
-                <a href="https://github.com/yourusername/screen-recorder" target="_blank">View on GitHub</a>
-            </p>
         </div>
     </div>
 
@@ -305,18 +388,65 @@
         let startTime;
         let timerInterval;
         let stream;
+        let audioStream;
+        let combinedStream;
 
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const recordingInfo = document.getElementById('recordingInfo');
         const timer = document.getElementById('timer');
         const errorMsg = document.getElementById('errorMsg');
-        const recordAudio = document.getElementById('recordAudio');
-        const videoFormat = document.getElementById('videoFormat');
+        const warningMsg = document.getElementById('warningMsg');
+        const qualitySelect = document.getElementById('quality');
+        const formatSelect = document.getElementById('format');
+        const audioSourceSelect = document.getElementById('audioSource');
+        const modeOptions = document.querySelectorAll('input[name="mode"]');
+        const qualityGroup = document.getElementById('qualityGroup');
+        const audioSourceGroup = document.getElementById('audioSourceGroup');
+        const recordingStatus = document.getElementById('recordingStatus');
+
+        // Update UI based on selected mode
+        modeOptions.forEach(option => {
+            option.addEventListener('change', updateUIForMode);
+        });
+
+        document.querySelectorAll('.mode-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.mode-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                this.querySelector('input').checked = true;
+                updateUIForMode();
+            });
+        });
+
+        function updateUIForMode() {
+            const selectedMode = document.querySelector('input[name="mode"]:checked').value;
+            
+            if (selectedMode === 'audio-only') {
+                qualityGroup.classList.add('hidden');
+                audioSourceGroup.classList.remove('hidden');
+                // Change audio source default for audio-only mode
+                if (audioSourceSelect.value === 'system') {
+                    audioSourceSelect.value = 'microphone';
+                }
+            } else if (selectedMode === 'screen-only') {
+                qualityGroup.classList.remove('hidden');
+                audioSourceGroup.classList.add('hidden');
+            } else if (selectedMode === 'camera') {
+                qualityGroup.classList.remove('hidden');
+                audioSourceGroup.classList.remove('hidden');
+                if (audioSourceSelect.value === 'system') {
+                    audioSourceSelect.value = 'microphone';
+                }
+            } else {
+                qualityGroup.classList.remove('hidden');
+                audioSourceGroup.classList.remove('hidden');
+            }
+        }
 
         // Check browser support
         if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-            showError('Your browser does not support screen recording. Please use a modern version of Chrome, Firefox, or Edge.');
+            showError('Your browser does not support screen recording. Please use Chrome, Edge, or Firefox.');
             startBtn.disabled = true;
         }
 
@@ -325,69 +455,156 @@
 
         async function startRecording() {
             try {
-                // Hide any previous errors
                 errorMsg.classList.remove('active');
+                warningMsg.classList.remove('active');
+                recordedChunks = [];
                 
-                // Request screen capture with audio if checkbox is checked
-                const constraints = {
-                    video: {
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 },
-                        frameRate: { ideal: 30 }
-                    },
-                    audio: recordAudio.checked ? {
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        sampleRate: 44100
-                    } : false
+                const selectedMode = document.querySelector('input[name="mode"]:checked').value;
+                const quality = qualitySelect.value;
+                const audioSource = audioSourceSelect.value;
+                
+                // Get quality settings
+                const qualitySettings = getQualitySettings(quality);
+                
+                if (selectedMode === 'audio-only') {
+                    // Audio only recording
+                    recordingStatus.textContent = 'Recording audio...';
+                    stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            sampleRate: 44100
+                        },
+                        video: false 
+                    });
+                } else if (selectedMode === 'camera') {
+                    // Camera recording
+                    recordingStatus.textContent = 'Recording camera...';
+                    const constraints = {
+                        video: {
+                            width: qualitySettings.width,
+                            height: qualitySettings.height,
+                            frameRate: qualitySettings.frameRate
+                        },
+                        audio: audioSource !== 'system'
+                    };
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                } else if (selectedMode === 'screen-only') {
+                    // Screen only recording
+                    recordingStatus.textContent = 'Recording screen...';
+                    stream = await navigator.mediaDevices.getDisplayMedia({
+                        video: {
+                            width: qualitySettings.width,
+                            height: qualitySettings.height,
+                            frameRate: qualitySettings.frameRate
+                        },
+                        audio: false
+                    });
+                } else {
+                    // Screen + Audio recording
+                    recordingStatus.textContent = 'Recording screen and audio...';
+                    
+                    // First get screen with system audio if requested
+                    const screenConstraints = {
+                        video: {
+                            width: qualitySettings.width,
+                            height: qualitySettings.height,
+                            frameRate: qualitySettings.frameRate
+                        },
+                        audio: audioSource === 'system' || audioSource === 'both'
+                    };
+                    
+                    stream = await navigator.mediaDevices.getDisplayMedia(screenConstraints);
+                    
+                    // If user wants microphone audio
+                    if (audioSource === 'microphone' || audioSource === 'both') {
+                        try {
+                            audioStream = await navigator.mediaDevices.getUserMedia({ 
+                                audio: {
+                                    echoCancellation: false,
+                                    noiseSuppression: false,
+                                    autoGainControl: false
+                                },
+                                video: false 
+                            });
+                            
+                            // Combine streams if we have both
+                            if (audioSource === 'both' && stream.getAudioTracks().length > 0) {
+                                combinedStream = new MediaStream([
+                                    ...stream.getVideoTracks(),
+                                    ...stream.getAudioTracks(),
+                                    ...audioStream.getAudioTracks()
+                                ]);
+                                showWarning('Recording both system and microphone audio. Both will be mixed in the output.');
+                            } else if (audioSource === 'microphone') {
+                                // Replace system audio with microphone
+                                combinedStream = new MediaStream([
+                                    ...stream.getVideoTracks(),
+                                    ...audioStream.getAudioTracks()
+                                ]);
+                            }
+                        } catch (audioError) {
+                            console.warn('Failed to get microphone:', audioError);
+                            showWarning('Microphone access denied. Recording without microphone audio.');
+                        }
+                    }
+                }
+
+                // Use combined stream if available, otherwise use the main stream
+                const recordingStream = combinedStream || stream;
+
+                if (!recordingStream || recordingStream.getTracks().length === 0) {
+                    throw new Error('No media tracks available for recording');
+                }
+
+                // Determine MIME type
+                let mimeType = getMimeType(selectedMode);
+                
+                // Create MediaRecorder
+                const recorderOptions = {
+                    mimeType: mimeType
+                };
+                
+                // Add bitrate for video modes
+                if (selectedMode !== 'audio-only') {
+                    recorderOptions.videoBitsPerSecond = qualitySettings.bitrate;
+                }
+                
+                mediaRecorder = new MediaRecorder(recordingStream, recorderOptions);
+
+                // Collect data
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                        console.log('Data chunk received:', event.data.size, 'bytes');
+                    }
                 };
 
-                stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+                // Handle recording stop
+                mediaRecorder.onstop = () => {
+                    console.log('Recording stopped, chunks:', recordedChunks.length);
+                    handleStop(selectedMode);
+                };
 
-                // Check if user actually granted permission (they might have canceled)
-                if (!stream) {
-                    showError('Recording canceled. Please try again and grant permission.');
-                    return;
-                }
+                // Handle errors
+                mediaRecorder.onerror = (event) => {
+                    console.error('MediaRecorder error:', event);
+                    showError('Recording error occurred. Please try again.');
+                    stopRecording();
+                };
 
-                // Determine the MIME type based on selected format
-                const mimeType = getMimeType();
-                
-                // Check if the MIME type is supported
-                if (!MediaRecorder.isTypeSupported(mimeType)) {
-                    showError(`Your browser does not support ${videoFormat.value.toUpperCase()} recording. Switching to WebM.`);
-                    videoFormat.value = 'webm';
-                    mimeType = 'video/webm; codecs=vp9';
-                }
-
-                // Create MediaRecorder with the stream
-                mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: mimeType,
-                    videoBitsPerSecond: 2500000 // 2.5 Mbps for good quality
+                // Handle stream end (user stops sharing)
+                recordingStream.getTracks().forEach(track => {
+                    track.onended = () => {
+                        if (mediaRecorder && mediaRecorder.state === 'recording') {
+                            stopRecording();
+                        }
+                    };
                 });
 
-                // Clear any previous recorded chunks
-                recordedChunks = [];
-
-                // Handle data available event
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        recordedChunks.push(event.data);
-                    }
-                };
-
-                // Handle stop event
-                mediaRecorder.onstop = handleStop;
-
-                // Handle stream ended (user clicked browser's stop sharing button)
-                stream.getVideoTracks()[0].onended = () => {
-                    if (mediaRecorder && mediaRecorder.state === 'recording') {
-                        stopRecording();
-                    }
-                };
-
                 // Start recording
-                mediaRecorder.start(1000); // Collect data every second
+                mediaRecorder.start(100); // Collect data every 100ms for better quality
+                console.log('Recording started with', recordingStream.getTracks().length, 'tracks');
 
                 // Update UI
                 startBtn.disabled = true;
@@ -403,9 +620,11 @@
                 console.error('Error starting recording:', error);
                 
                 if (error.name === 'NotAllowedError') {
-                    showError('Permission denied. Please allow screen recording and try again.');
+                    showError('Permission denied. Please allow recording and try again.');
                 } else if (error.name === 'NotFoundError') {
-                    showError('No screen or window available for recording.');
+                    showError('No media source available for recording.');
+                } else if (error.name === 'NotReadableError') {
+                    showError('Could not access media device. It may be in use by another application.');
                 } else {
                     showError(`Failed to start recording: ${error.message}`);
                 }
@@ -413,17 +632,27 @@
         }
 
         function stopRecording() {
+            console.log('Stopping recording...');
+            
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
             }
             
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-            }
+            // Stop all tracks
+            [stream, audioStream, combinedStream].forEach(s => {
+                if (s) {
+                    s.getTracks().forEach(track => track.stop());
+                }
+            });
+            
+            stream = null;
+            audioStream = null;
+            combinedStream = null;
 
             // Clear timer
             if (timerInterval) {
                 clearInterval(timerInterval);
+                timerInterval = null;
             }
 
             // Update UI
@@ -432,21 +661,44 @@
             recordingInfo.classList.remove('active');
         }
 
-        function handleStop() {
-            // Create blob from recorded chunks
-            const format = videoFormat.value;
-            const mimeType = getMimeType();
-            const blob = new Blob(recordedChunks, { type: mimeType });
+        function handleStop(mode) {
+            if (recordedChunks.length === 0) {
+                showError('No data was recorded. Please try again.');
+                return;
+            }
 
-            // Create download link
+            // Calculate total size
+            const totalSize = recordedChunks.reduce((acc, chunk) => acc + chunk.size, 0);
+            console.log('Total recording size:', totalSize, 'bytes');
+
+            if (totalSize === 0) {
+                showError('Recording is empty. Please check your settings and try again.');
+                return;
+            }
+
+            // Create blob
+            const mimeType = getMimeType(mode);
+            const blob = new Blob(recordedChunks, { type: mimeType });
+            console.log('Created blob:', blob.size, 'bytes, type:', blob.type);
+
+            // Determine file extension
+            let extension = 'webm';
+            if (mode === 'audio-only') {
+                extension = 'webm'; // Audio will be in WebM container
+            } else if (formatSelect.value === 'mp4' && mimeType.includes('mp4')) {
+                extension = 'mp4';
+            }
+
+            // Create download
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
             
-            // Generate filename with timestamp
+            // Generate filename
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            a.download = `screen-recording-${timestamp}.${format}`;
+            const prefix = mode === 'audio-only' ? 'audio' : 'recording';
+            a.download = `${prefix}-${timestamp}.${extension}`;
             
             // Trigger download
             document.body.appendChild(a);
@@ -457,22 +709,98 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             }, 100);
+
+            // Clear chunks for next recording
+            recordedChunks = [];
         }
 
-        function getMimeType() {
-            const format = videoFormat.value;
-            if (format === 'mp4') {
-                // Try different MP4 codecs
-                if (MediaRecorder.isTypeSupported('video/mp4')) {
-                    return 'video/mp4';
-                } else if (MediaRecorder.isTypeSupported('video/mp4; codecs=h264')) {
-                    return 'video/mp4; codecs=h264';
-                } else if (MediaRecorder.isTypeSupported('video/mp4; codecs=avc1')) {
-                    return 'video/mp4; codecs=avc1';
+        function getQualitySettings(quality) {
+            const settings = {
+                '1080': { 
+                    width: { ideal: 1920, max: 1920 }, 
+                    height: { ideal: 1080, max: 1080 }, 
+                    frameRate: { ideal: 30, max: 30 },
+                    bitrate: 8000000 // 8 Mbps
+                },
+                '720': { 
+                    width: { ideal: 1280, max: 1280 }, 
+                    height: { ideal: 720, max: 720 }, 
+                    frameRate: { ideal: 30, max: 30 },
+                    bitrate: 4000000 // 4 Mbps
+                },
+                '480': { 
+                    width: { ideal: 854, max: 854 }, 
+                    height: { ideal: 480, max: 480 }, 
+                    frameRate: { ideal: 24, max: 30 },
+                    bitrate: 2000000 // 2 Mbps
+                },
+                '360': { 
+                    width: { ideal: 640, max: 640 }, 
+                    height: { ideal: 360, max: 360 }, 
+                    frameRate: { ideal: 24, max: 24 },
+                    bitrate: 1000000 // 1 Mbps
+                }
+            };
+            return settings[quality] || settings['720'];
+        }
+
+        function getMimeType(mode) {
+            const format = formatSelect.value;
+            
+            // For audio-only, use audio-specific codecs
+            if (mode === 'audio-only') {
+                // Try Opus first (best quality), then fall back
+                const audioTypes = [
+                    'audio/webm;codecs=opus',
+                    'audio/webm',
+                    'audio/ogg;codecs=opus'
+                ];
+                
+                for (let type of audioTypes) {
+                    if (MediaRecorder.isTypeSupported(type)) {
+                        console.log('Using audio MIME type:', type);
+                        return type;
+                    }
                 }
             }
-            // Default to WebM with VP9 codec
-            return 'video/webm; codecs=vp9';
+            
+            // For video modes
+            if (format === 'mp4') {
+                const mp4Types = [
+                    'video/mp4;codecs=h264,aac',
+                    'video/mp4;codecs=h264',
+                    'video/mp4;codecs=avc1',
+                    'video/mp4'
+                ];
+                
+                for (let type of mp4Types) {
+                    if (MediaRecorder.isTypeSupported(type)) {
+                        console.log('Using MP4 MIME type:', type);
+                        return type;
+                    }
+                }
+            }
+            
+            // Default to WebM with best supported codecs
+            const webmTypes = [
+                'video/webm;codecs=vp9,opus',
+                'video/webm;codecs=vp8,opus',
+                'video/webm;codecs=h264,opus',
+                'video/webm;codecs=vp9',
+                'video/webm;codecs=vp8',
+                'video/webm'
+            ];
+            
+            for (let type of webmTypes) {
+                if (MediaRecorder.isTypeSupported(type)) {
+                    console.log('Using WebM MIME type:', type);
+                    return type;
+                }
+            }
+            
+            // Final fallback
+            console.log('Using default MIME type');
+            return 'video/webm';
         }
 
         function updateTimer() {
@@ -490,7 +818,17 @@
         function showError(message) {
             errorMsg.textContent = message;
             errorMsg.classList.add('active');
+            setTimeout(() => errorMsg.classList.remove('active'), 10000);
         }
+
+        function showWarning(message) {
+            warningMsg.textContent = message;
+            warningMsg.classList.add('active');
+            setTimeout(() => warningMsg.classList.remove('active'), 10000);
+        }
+
+        // Initialize UI
+        updateUIForMode();
     </script>
 </body>
 </html>
